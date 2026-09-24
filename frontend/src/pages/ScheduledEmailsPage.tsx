@@ -5,7 +5,7 @@ import { RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 
 const ScheduledEmailsPage: React.FC = () => {
     const { emails, total, loading, error, page, setPage, limit, cancelEmail, refresh } = useEmails("scheduled");
-    const [cancelling, setCancelling] = useState<string | null>(null);
+    const [, setCancelling] = useState<string | null>(null);
 
     const handleCancel = async (id: string) => {
         if (!confirm("Cancel this scheduled email?")) return;
