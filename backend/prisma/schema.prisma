@@ -1,0 +1,70 @@
+// ReachInbox Email Scheduler — Prisma Schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String      @id @default(uuid())
+  googleId     String      @unique
+  email        String      @unique
+  name         String
+  avatar       String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  slackToken   SlackToken?
+  emails       Email[]
+}
+
+model SlackToken {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  webhookUrl   String
+  teamName     String?
+  channelName  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Sender {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  smtpUser     String
+  smtpPass     String
+  smtpHost     String   @default("smtp.ethereal.email")
+  smtpPort     Int      @default(587)
+  createdAt    DateTime @default(now())
+  emails       Email[]
+}
+
+model Email {
+  id              String   @id @default(uuid())
+  userId          String?
+  senderId        String?
+  to              String
+  subject         String
+  body            String
+  status          String   @default("scheduled")  // scheduled | sending | sent | failed | cancelled
+  scheduledAt     DateTime
+  sentAt          DateTime?
+  jobId           String?
+  idempotencyKey  String   @unique
+  errorMessage    String?
+  previewUrl      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User?    @relation(fields: [userId], references: [id])
+  sender          Sender?  @relation(fields: [senderId], references: [id])
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([userId])
+  @@index([senderId])
+}
